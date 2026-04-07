@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { useContext } from "react";
 import { UserContext } from "./context/UserContext";
 
@@ -18,7 +18,10 @@ import Feed from "./pages/Feed";
 import VerifyCertificate from "./pages/VerifyCertificate";
 
 function App() {
-  const { currentUser } = useContext(UserContext);
+  const { loading } = useContext(UserContext); // 🔥 only loading needed here
+
+  // 🔥 OPTIONAL: Global loading screen
+  if (loading) return <div>Loading...</div>;
 
   return (
     <>
@@ -26,8 +29,13 @@ function App() {
 
       <div className="pt-20">
         <Routes>
+          {/* PUBLIC */}
           <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/profile/:userId" element={<PublicProfile />} />
 
+          {/* PROTECTED */}
           <Route
             path="/dashboard"
             element={
@@ -55,8 +63,6 @@ function App() {
             }
           />
 
-          <Route path="/profile/:userId" element={<PublicProfile />} />
-
           <Route
             path="/directory"
             element={
@@ -66,21 +72,33 @@ function App() {
             }
           />
 
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-
-          {/* ✅ ADMIN ROUTE */}
           <Route
-            path="/admin"
+            path="/feed"
             element={
-              currentUser?.role === "admin"
-                ? <AdminDashboard />
-                : <Navigate to="/dashboard" />
+              <ProtectedRoute>
+                <Feed />
+              </ProtectedRoute>
             }
           />
 
-          <Route path="/feed" element={<Feed />} />
-          <Route path="/verify/:certificateId" element={<VerifyCertificate />} />
+          <Route
+            path="/verify/:certificateId"
+            element={
+              <ProtectedRoute>
+                <VerifyCertificate />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* 🔥 ADMIN ONLY */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute adminOnly={true}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </div>
     </>

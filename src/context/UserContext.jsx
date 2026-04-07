@@ -16,6 +16,17 @@ export function UserProvider({ children }) {
   const [users, setUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
   const [certifications, setCertifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+  const user = JSON.parse(localStorage.getItem("user"));
+  const token = localStorage.getItem("token");
+
+  if (user && token) {
+    setCurrentUser(user);
+  }
+
+  setLoading(false); // 🔥 ADD THIS
+}, []);
 
   // ================= LOAD DATA =================
 
@@ -64,8 +75,13 @@ export function UserProvider({ children }) {
       if (res.data.error) return { error: res.data.error };
 
       const user = res.data.user;
+const token = res.data.token;
 
-      setCurrentUser(user);
+// 🔥 STORE BOTH
+localStorage.setItem("token", token);
+localStorage.setItem("user", JSON.stringify(user));
+
+setCurrentUser(user);
       setUsers(prev => [...prev, user]);
 
       return { success: true };
@@ -85,8 +101,13 @@ export function UserProvider({ children }) {
       if (res.data.error) return { error: res.data.error };
 
       const user = res.data.user;
+const token = res.data.token;
 
-      setCurrentUser(user);
+// 🔥 SAME AS SIGNUP
+localStorage.setItem("token", token);
+localStorage.setItem("user", JSON.stringify(user));
+
+setCurrentUser(user);
       setUsers(prev => {
         const exists = prev.some(u => String(u.id) === String(user.id));
         if (!exists) return [...prev, user];
@@ -104,8 +125,10 @@ export function UserProvider({ children }) {
   };
 
   const logout = () => {
-    setCurrentUser(null);
-  };
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+  setCurrentUser(null);
+};
 
   // ================= CERTIFICATIONS =================
 
@@ -279,6 +302,7 @@ export function UserProvider({ children }) {
       users,
       setUsers,
       currentUser,
+      loading,
       certifications,
       setCertifications,
       signup,
